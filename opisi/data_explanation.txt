@@ -1,0 +1,42 @@
+Kupac:
+
+CustomerID – jedinstveni ID kupca, ključan za sve analize
+Customer industry – industrija kupca, korisno za segmentaciju
+Customer Region – regija, korisno za geografsku analizu
+Customer First Invoice Date – kad je kupac prvi put kupio, korisno za "starost" kupca
+Top Customer Group – kategorizacija kupaca, OTHER ili STAR
+
+
+Proizvod:
+
+Item Code – jedinstveni ID proizvoda
+Product family i Product group – kategorije proizvoda, korisno za basket analysis
+Make vs Buy – da li se proizvod proizvodi interno ili kupuje vana
+Price last modified date in the ERP - kada je cijena promjenjena
+# of unique products on a quote - kolikoje razlicitih proizvoda ponudjeno kupcu
+Born on date - kad je nastao proizvod, kad je izradjen
+
+
+Transakcija:
+
+Invoice # i Invoice Line # – broj fakture i linija, jedan invoice može imat više linija (proizvoda)
+Invoice Date – datum fakture, ključan za Recency u RFM
+Order #, Order Date – narudžba, slično kao invoice
+Order Line #
+Invoiced qty (shipped) i Ordered qty – koliko naručeno/isporučeno
+Invoiced price – cijena, ključna za Monetary u RFM
+Invoiced price (TX) - nisam siguran, mozda TAX? ali su cudni podaci
+
+Financijski:
+
+Cost of part, Material cost, Labor cost, Overhead cost – razne komponente troška
+GM% – gross margin postotak, profitabilnost
+
+Sales channel:
+
+Sales Channel - Internal/External/Grouping – kanal prodaje
+Intercompany – da li je prodaja unutar iste kompanije
+
+Lokacija proizvodnje:
+
+Manufacturing Region, Manufacturing Location Code – gdje se proizvodi, manje relevantno za tvoj zadatak

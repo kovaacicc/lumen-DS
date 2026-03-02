@@ -1,0 +1,10 @@
+Invoice Line # - nepotrebno, to je unique identifier za neku stvar na invoiceu, bitan nam je samo invoice da znamo sta se kupilo zajedno
+Order Date - vec imamo invoice date pa je ovo nepotrebno
+Material cost of part, Labor cost of part, Overhead cost of part - imamo ukupni Cost of part pa nam netrebaju komponente costa
+Sales Channel - Grouping - svi su null pa nam netreba
+Born on date - nije nam bas bitno kada je proizveden taj proizvod, eventualno mi pada na pamet da bi kupac izabrao neki date of manufacturing radije nego neki drugi ali iz podataka nemozemo razluciti dal je to utjecalo na izbot i zna li kupac kad je proizvedeno uopce
+Price last modified date in the ERP - nije nam bitno kada je zadnje cijena promjenjena, eventualno bi bilo potrebno za elasticnost cijene ali to ne spada u zadatak
+# of unique products on a quote - ne vidim zasto bi nam bilo od znacaja
+Order Line # - isto kao Invoice Line # nije potrebno
+Order # - mislio sam da ce nam trebati za npr ako je kupac nesto narucio ali mu se nije isporucilo, ali to nema smisla jer su podatci za sve prodane iteme i nema nekog itema koji je narucen ali nije isporucen, pa nam netreba to jer imamo Invoice # i to gledamo kao bas sto je poslano
+
