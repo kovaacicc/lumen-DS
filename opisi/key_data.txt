@@ -1,0 +1,5 @@
+CustomerID - za radjenje persone za tog customera i stvaranje preporuka
+Item code - za preporuke
+Invoice Date - Recency
+Invoice # - preporuke, sto se kupilo zajedno
+Invoiced price - Monetary

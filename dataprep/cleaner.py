@@ -24,20 +24,26 @@ df = df.drop(columns=[
 ])
 
 
-"""
-# maknemo redove kojima nedostaju ti stupci, jer nam je to najbitniji data
-df = df.dropna(subset=["Item Code", "Invoiced price", "CustomerID"])
 
-# ubacimo Unknown tamo gdje su nepotpuni podaci
+# maknemo redove kojima nedostaju ti stupci, jer nam je to najbitniji data
+df = df.dropna(subset=["Item Code", "Invoiced price", "CustomerID", "Invoice #", "Invoice Date"])
+# fali samo 60 Item Code - zanemarivo malo, i 0.6% svih podataka za Invoiced price, sto mi se isto cini malo,
+# eventualno se moze popuniti srednjim vrijednostima cijena s istim Item Code koje imaju blizu datum kupovine, 0.6% mi se zanemarivo cini
+
+# ubacimo Unknown tamo gdje su stupci null, ali samo za str, one s int, float i datetime cemo ostaviti null i poslije vidjeti sto s njima
 fill_unknown = [
+    "Manufacturing Region",
+    "Manufacturing Location Code",
+    "Intercompany",
+    "Customer industry",
     "Customer Region",
+    "Top Customer Group",
+    "Product family",
     "Product group",
     "Make vs Buy",
     "Sales Channel - Internal",
-    "Sales Channel - External",
-    "Manufacturing Region",
-    "Manufacturing Location Code",
-    "Born on date"
+    "Sales Channel - External"
 ]
-df[fill_unknown] = df[fill_unknown].fillna("Unknown")
-"""
+
+df[fill_unknown] = df[fill_unknown].fillna("unknown")
+
