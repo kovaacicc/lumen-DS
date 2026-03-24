@@ -2,6 +2,8 @@
 79 zapisa s shipped qty<0, sto to znaci i moze li se maknuti?
 87k zapisa s Invoiced price=0, sto to znaci?
 Cost of part 0 i negativno?
+Invoiced price je jedinicno ili ne?
+Velike razlike cijena istih itema
 
 Objasnjenje za: Manufacturing region i location code, Intercompany, Top customer group, Product family i group, Make vs buy, Sales channeli
 
