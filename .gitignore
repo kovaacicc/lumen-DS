@@ -1,5 +1,7 @@
 # Data
 data/
+data.csv
+LUMEN_DS.csv
 
 # Python
 __pycache__/
@@ -12,3 +14,4 @@ __pycache__/
 
 # OS
 .DS_Store
+
