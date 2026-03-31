@@ -7,3 +7,9 @@ Velike razlike cijena istih itema
 
 Objasnjenje za: Manufacturing region i location code, Intercompany, Top customer group, Product family i group, Make vs buy, Sales channeli
 
+dal je okej imputirat cijenu na temelju medijana za one koji imaju null cijene negdje? nastavno na to da jel invoiced price jedinicna cijena
+dal je oke imputirati cijenu onima koji imaju price 0 ali imaju cost of part?
+dalje sto s cijenama 0? ima kupaca koji imaju cijene samo 0
+sto su SAMPLE i /, imaju velike razlike u cijenama
+sta s kupcima koji imaju samo transakcije s cijenom 0?
+jel oke maknuti intercompany yes
