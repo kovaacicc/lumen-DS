@@ -1,3 +1,4 @@
+
 150k zapisa s shipped qty=0, sto to znaci?
 79 zapisa s shipped qty<0, sto to znaci i moze li se maknuti?
 87k zapisa s Invoiced price=0, sto to znaci?
@@ -13,3 +14,4 @@ dalje sto s cijenama 0? ima kupaca koji imaju cijene samo 0
 sto su SAMPLE i /, imaju velike razlike u cijenama
 sta s kupcima koji imaju samo transakcije s cijenom 0?
 jel oke maknuti intercompany yes
+sta sa cost of part null?
