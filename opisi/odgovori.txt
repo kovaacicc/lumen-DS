@@ -1,0 +1,43 @@
+1. Možete li nam dati pojašnjenje kako ste zamislili validaciju sustava za preporuke i metrike kako da to dobro i objektivno napravimo
+
+ Iz detaseta odovojimo validacijski dio prema datumu računa tako da skup za validaciju bude pogodan za pokriti case-ve. Ne uzimamo random samplove. 
+
+Cross-Sell možemo lakše validirati. Poanta je ako ne možemo dobiti validaciju na skroz granuliranim podacima (a u ovom slučaju ne možemo) onda treba gledati malo manje grunulirano skupove (odaberite dimenzije po kojima se dobro može grupirati a da možete validirati rezultate). Kako grupirati i jednu i drugu stranu i s čime uspoređivati to dalje ovisi o vašim zaključcima u analizi.
+
+Upsell za validarati je problematičniji. Ono što je bazno za provjeriti je da provjeravamo prodaju po proxy metrikama, npr. vrijednost prodanog kupcu u nekom narednom vremenskom razdoblju. Direktnije validacije možemo simulirati u prezentaciji. Postaviti pravila i testirati pretpostavke za vidljivost boljih rezultata. 
+
+Možete li preciziratii kako API treba biti izgrađen/strukturiran ?
+
+Api bi trebao biti jednostavan. Ne treba mu se pridodavati previše pozornosti toj komponenti. Može sadržavati dva endpoint (jedan za crosssell drugi za upsell) koji prima CustomerID i listu produkata koje je korisnik već odabrao. Svaki od endpointova vraća listu proizvoda i score s kojom sigurnošću (confidence) ga preporučujemo. Prema tom broju su i itemi u listi poredani.
+
+
+2. Kako znati koji proizvodi su upsell/crosssell na neki drugi proizvod ?
+
+Crosssell informacija se može izvući iz dataseta koji su se proizvodi kupovali skupa u raznim grupiranjima. Ta informacija ne mora biti dobivena iz zajedničke kupnje. Možete na razne načine grupirati i dobivati segmente.
+Upsell informacija se može izvući iz informacije o grupi proizvoda. Možete sami analizirati i označiti si upssell informaciji. 
+
+3. Kako definirate “buyers personas” ?
+
+	To je dio zadatka. Analizirati dataset.
+
+4. Što znače pojedini stupci, odnosno značajke u datasetu?
+
+To je dio zadatka da sami analizirate dataset, dobijete neki kontekst nakon statičke analize i dalje idete u proučavanje domene podataka. AI asistenti vam ovaj dio uveliko skraćuju da domenu podataka vrlo brzo savladate. 
+
+5. Što u datasetu znače redovi s invoiced price=0, shipped qty=0 i shipped qty<0?
+
+To su tehnički zapisi iz izvorišnog sustava koji se trebaju posebno tretirati tj. micati iz analize da ne narušavaju rezultat.
+
+6. Je li invoiced price jedinična cijena za taj item code u retku?
+
+To je cijena tog produkta unutar konkretnog računa (invoice). Račun se dobije grupiranjem inovice-u.
+
+7. Što predstavljaju item codeovi koji počinju s / i SAMPLE
+
+	Retci produkata koji počinju s / su neki tehnički zapisi izvorišnog sustava. Ne trebaju se uzimati u obzir. 
+Itemi sa nazivom SAMPLE su uzorci koji nisu zahtijevani u kupnji od kupca  nego su im poslani na testiranje.
+
+8. Je li customerID=-99 pravi kupac? (jedini sa negativnim ID-jem)
+
+-99 je oznaka za null( tj. None) u podacima. To nije kupac. Taj -99 nastaje zato što su se joinale tablice prilikom SELECT upita i neke vrijednosti nisu popunjene te zbog toga ih se pun sa vrijednosti -99 ili prilikom loadanja iz izvorišnog sustava u analitički sustav gdje je vrijednost nepoznata. 
+
