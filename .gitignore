@@ -1,19 +1,25 @@
-# Data
-data/
+# ── Raw & large processed data (too large for git) ────────────────────────────
+data/raw/
+data/processed/data_clean*.csv
+data/processed/basket_matrix.csv
+data/processed/invoice_items.csv
+data/processed/cross_sell/
+
+# Legacy root-level files
 data.csv
 LUMEN_DS.csv
 
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 .env
 *.egg-info/
 
-# Jupyter checkpoints
+# ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# OS
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 
+# ── Task PDF (internal) ───────────────────────────────────────────────────────
 DATA SCIENCE nagradni zadatak.pdf
-

@@ -1,0 +1,17 @@
+{
+  "train_end": "2019-07-01",
+  "label_end": "2020-07-01",
+  "top_k": 5,
+  "n_target_pairs": 6458,
+  "n_target_customers": 4993,
+  "n_recommendations": 27744,
+  "n_items_tiered": 38734,
+  "n_premium_items": 19382,
+  "validation": {
+    "n_with_label_data": 3720,
+    "coverage_pct": 0.5988,
+    "avg_price_uplift": 35.6247,
+    "pct_positive_uplift": 0.4425,
+    "pct_moved_premium": 0.0761
+  }
+}
