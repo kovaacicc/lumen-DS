@@ -160,6 +160,18 @@ def _copurchase_features(selected_products: List[str], candidate_pg: str):
     return float(max(rates)), float(np.mean(rates))
 
 
+def _items_to_pgs(item_codes: List[str]) -> List[str]:
+    """Map specific item codes to their product groups using the item_tiers lookup."""
+    pgs = []
+    seen = set()
+    for code in item_codes:
+        info = state["item_tiers"].get(code)
+        if info and info["Product group"] not in seen:
+            pgs.append(info["Product group"])
+            seen.add(info["Product group"])
+    return pgs
+
+
 def _layer2_items(pg: str, cluster_name: Optional[str]) -> List[dict]:
     pop = state.get("item_popularity_all")
     if pop is None:
@@ -184,7 +196,7 @@ def _layer2_items(pg: str, cluster_name: Optional[str]) -> List[dict]:
 
 class CrossSellRequest(BaseModel):
     customer_id: Optional[int] = None
-    selected_products: Optional[List[str]] = None  # PG codes the customer already buys
+    item_codes: Optional[List[str]] = None  # item codes the customer has selected / currently orders
 
 
 class UpsellRequest(BaseModel):
@@ -206,8 +218,10 @@ def health():
 
 @app.post("/cross-sell")
 def cross_sell(req: CrossSellRequest):
-    selected_products = req.selected_products or []
     customer_id = req.customer_id
+
+    # Map incoming item codes → PG codes for co-purchase signal
+    selected_pgs = _items_to_pgs(req.item_codes or [])
 
     # Customer-level features
     if customer_id and customer_id in state["customer_feats"]:
@@ -221,8 +235,9 @@ def cross_sell(req: CrossSellRequest):
     if customer_id and customer_id in state["customer_purchased_pgs"]:
         raw = state["customer_purchased_pgs"][customer_id]
         purchased = set(raw.split("|")) if raw else set()
+        purchased.update(selected_pgs)  # also exclude PGs from the current order
     else:
-        purchased = set(selected_products)
+        purchased = set(selected_pgs)
 
     candidates = [pg for pg in state["all_product_groups"] if pg not in purchased]
     if not candidates:
@@ -233,8 +248,8 @@ def cross_sell(req: CrossSellRequest):
     pg_list, feat_rows = [], []
     for pg in candidates:
         pg_f = product_feats.get(pg, {})
-        rule_exists, rule_lift, rule_conf = _rule_features(selected_products, pg)
-        max_cp, mean_cp = _copurchase_features(selected_products, pg)
+        rule_exists, rule_lift, rule_conf = _rule_features(selected_pgs, pg)
+        max_cp, mean_cp = _copurchase_features(selected_pgs, pg)
 
         row = {col: cust.get(col, 0.0) for col in CUST_COLS}
         row.update(
