@@ -22,6 +22,9 @@ lumen-DS/
 ├── api/
 │   ├── main.py                  ← REST API (FastAPI)
 │   └── requirements.txt         ← API dependencies
+├── dataprep/
+│   ├── fixer.py                 ← pre-processing script (run before notebook pipeline)
+│   └── cleaner.py               ← pre-processing script (run before notebook pipeline)
 ├── data/
 │   ├── raw/
 │   │   └── LUMEN_DS.csv         ← original dataset (not in git, required)
@@ -35,7 +38,14 @@ lumen-DS/
 │   ├── cross_sell_recommender.ipynb
 │   ├── upsell_model.ipynb
 │   └── cross_sell_model.ipynb   ← supplementary, not required for API
-└── visualization/
+├── visualization/
+├── docs/
+│   ├── runbooks/
+│   │   ├── RUN_BOOK.md              ← this file (English)
+│   │   └── TEHNIČKA_DOKUMENTACIJA.md ← Croatian version
+│   ├── CODEBASE_AUDIT.md
+│   └── CLEANUP_REMAINING.md
+└── prompts.txt
 ```
 
 ---
@@ -60,7 +70,7 @@ pip install pandas==2.3.3 numpy==2.2.6 scikit-learn==1.7.2 xgboost==3.2.0 \
 ### 3.3 Install API dependencies
 
 ```bash
-pip install fastapi==0.135.1 "uvicorn[standard]==0.41.0"
+pip install -r api/requirements.txt
 ```
 
 ### 3.4 Register the kernel with Jupyter

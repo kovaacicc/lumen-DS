@@ -189,3 +189,38 @@ gives no baseline. **Add the following line at the end of the markdown cell:**
 *These notebooks were not cleaned alongside `data_cleaning`, `market_basket`, and `customer_segmentation`
 because they were authored by a different team member. Apply the same judgment: do not change logic,
 variable names, or model parameters — only remove dead code and improve documentation.*
+
+---
+
+## Pre-submission checklist after Val's commit for Karlo
+
+### When you add `PROJECT_DOCUMENTATION.md`
+
+Add it to the folder structure diagrams in **all three** of these files — they must stay in sync:
+- `README.md` (root)
+- `docs/runbooks/RUN_BOOK.md`
+- `docs/runbooks/TEHNIČKA_DOKUMENTACIJA.md`
+
+The same rule applies any time you add, remove, or rename a file that would appear in the folder structure.
+
+---
+
+### Before final submission — remove these two things
+
+**1. `prompts.txt` (root)**
+Internal development notes. Remove it from the repo before submission.
+
+**2. `opisi/` directory (root)**
+Internal working notes in Croatian. Maybe remove the entire directory before submission?
+
+```bash
+git rm prompts.txt
+git rm -r opisi/
+git commit -m "Remove internal working files before submission"
+```
+
+**3. `CLEANUP_REMAINING.md` (root)**
+Also maybe remove it from the repo before submission.
+
+**4. `CODEBASE_AUDIT.md` (root)**
+Also maybe remove it from the repo before submission.

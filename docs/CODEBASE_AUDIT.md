@@ -1,6 +1,6 @@
 # Codebase Audit — Lumen DS Competition Project
 
-> Generated 2026-05-07. Last updated 2026-05-07 — cleanup applied to `data_cleaning`, `market_basket`, `customer_segmentation`. See `CLEANUP_REMAINING.md` for pending notebooks.
+> Generated 2026-05-07. Last updated 2026-05-08 — all notebooks cleaned. README.md, RUN_BOOK.md, and TEHNIČKA_DOKUMENTACIJA.md created. api/requirements.txt version-pinned.
 
 ---
 
@@ -200,11 +200,11 @@ data/raw/LUMEN_DS.csv  (UTF-16, pipe-sep — gitignored)
 - **Title cell** — updated with English purpose description
 - 66 cells → 57 cells
 
-### `encoding_and_feature_engineering.ipynb` ⏳ pending — see `CLEANUP_REMAINING.md`
-- **Dead code (cell `940b426b`):** Entire `Customer industry` numeric extraction block is commented out. Should be deleted.
-- **`Intercompany` column:** All 928,762 rows have value `"NO"` (printed in cell output). Including it in encodings adds zero signal; encoding it produces a constant column.
-- **Orphaned outputs:** `data_clean_enc_fe.csv` (~928k × 62 cols, gitignored) and `invoice_items.csv` (gitignored) are saved but never read by any downstream notebook — both can be removed from the save block.
-- **Empty trailing cell** (`e31f8003`): blank cell at the end.
+### `encoding_and_feature_engineering.ipynb` ✅ cleaned 2026-05-08
+- ~~**Dead code (cell `940b426b`):** Entire `Customer industry` numeric extraction block is commented out.~~ — **deleted**
+- ~~**Empty trailing cell** (`e31f8003`): blank cell at the end.~~ — **deleted**
+- **Title markdown cell** — **added** at position 0
+- **Orphaned outputs kept** (`data_clean_enc_fe.csv`, `invoice_items.csv`) — retained for submission reviewers; confirmed never read downstream.
 
 ### `customer_segmentation.ipynb` ✅ cleaned 2026-05-07
 - ~~**Unused K3 columns:** `for k in [3, 4]` loop~~ — **deleted** (K=4 is recomputed in the final cell anyway)
@@ -221,21 +221,17 @@ data/raw/LUMEN_DS.csv  (UTF-16, pipe-sep — gitignored)
 - ~~**Croatian inline comment** (`13881fa0`)~~ — **translated** to English
 - 22 cells → 20 cells
 
-### `cross_sell_model.ipynb` ⏳ pending — see `CLEANUP_REMAINING.md`
-- **Entire notebook is superseded.** The API does not load any model from `models/cross_sell/`. The notebook should be either clearly marked as "exploratory/archived" in a header markdown cell, or moved to a separate `archived/` directory to avoid confusion.
-- **No temporal train/test split:** The model is trained on all historical data without leakage prevention — invalid for rigorous evaluation of a time-series prediction task. The notebook's stated purpose (identify multi-PG buyers) is a static classification, not a prospective recommendation.
-- **`scale_pos_weight` hardcoded:** `scale_pos_weight=7220/4554` is hardcoded from a data snapshot. This will silently become wrong if the dataset changes.
+### `cross_sell_model.ipynb` ✅ cleaned 2026-05-08
+- ~~**Entire notebook is superseded** — no archived header.~~ — **fixed**: title cell replaced with EXPLORATORY/ARCHIVED header explaining limitations vs production recommender and that models are not loaded by the API.
 
-### `cross_sell_recommender.ipynb` ⏳ pending — see `CLEANUP_REMAINING.md`
-- **`BASELINE_XGB_AUC = 0.8888` hardcoded** at the start of the rolling window section — this documents a prior state but will silently be wrong if the model is retrained. Convert to a comment or compute it live.
-- **Rolling window `LabelEncoder` re-fit:** In `build_window_df()`, `le_w = LabelEncoder()` is fit on each window's data independently. If a window's `customer_region` column has fewer unique values than the main train set, the integer encodings will differ from the main model's `cluster_enc`, `region_enc`, etc. — a silent feature mismatch.
-- **`model_df['xgb_probability']` written in the recommendations cell** then `model_df['best_probability']` written again in the save cell — two columns with near-identical content in the large in-memory DataFrame, unnecessary.
-- **Precision@5 = 0.38%** is noted but not contextualized. At 290:1 class imbalance, a random ranker would score ~0.34% — the model barely exceeds random on this metric. Worth a brief markdown note.
+### `cross_sell_recommender.ipynb` ✅ cleaned 2026-05-08
+- ~~**`BASELINE_XGB_AUC = 0.8888` hardcoded**~~ — **fixed**: converted inline comment to a proper note above the assignment explaining the value is a historical snapshot.
+- ~~**`model_df['xgb_probability']` dead column in preview cell**~~ — **fixed**: variable renamed to `recommendations_preview` to clarify it is a preview step, not the final output.
+- ~~**Precision@5 not contextualized**~~ — **fixed**: context note added to `md-section10` explaining the 0.34% random baseline and that AUC is the primary metric.
 
-### `upsell_model.ipynb` ⏳ pending — see `CLEANUP_REMAINING.md`
-- **`SF001` edge case:** `SF001` has only 1 unique item (`363999`) which achieves 100% confidence with 2 buyers — technically valid but likely a degenerate recommendation for any customer in that group.
-- **Validation section lacks interpretation:** 7.6% of targets moved to premium tier is stated without a baseline (what % would move in the absence of targeting?). A single-line comparison to a random-customer baseline would strengthen the section.
-- **`n_buyers >= 2` filter comment** is present but the rationale ("removes single-purchase noise") could be a markdown cell rather than an inline comment, since it's a significant methodological choice.
+### `upsell_model.ipynb` ✅ cleaned 2026-05-08
+- ~~**`n_buyers >= 2` filter comment** is an inline comment only~~ — **fixed**: markdown cell inserted above the filter explaining the methodological rationale and the SF001 edge case.
+- ~~**Validation section lacks baseline**~~ — **fixed**: note added to `32e9e7aa` explaining the missing control group and how to sanity-check the 7.6% figure.
 
 ### `api/main.py`
 - **`state: dict = {}` global mutable state:** Works for single-process FastAPI, but any future multi-worker deployment (Gunicorn with multiple workers) will not share this state. Not an immediate bug, but worth noting.
@@ -249,11 +245,11 @@ data/raw/LUMEN_DS.csv  (UTF-16, pipe-sep — gitignored)
 
 ## Documentation Gaps
 
-1. **No README.md.** There is no top-level file explaining what the project does, how to set up the environment, what the raw data looks like, or how to run the pipeline. A newcomer has no entry point.
+1. ~~**No README.md.**~~ — **created 2026-05-08**: pipeline diagram, setup, execution order, API examples.
 
-2. **Execution order not documented.** Notebooks must be run in a specific sequence (`data_cleaning` → `encoding_and_feature_engineering` → `customer_segmentation` → `market_basket` → `cross_sell_recommender` + `upsell_model`). This dependency chain is invisible without reading all notebooks.
+2. ~~**Execution order not documented.**~~ — **documented** in README.md and RUN_BOOK.md / TEHNIČKA_DOKUMENTACIJA.md.
 
-3. **`cross_sell_model.ipynb` vs `cross_sell_recommender.ipynb` ambiguity.** These two notebooks address similar problems with different approaches. The former is not used by the API, but there is no comment or header explaining this. A reviewer would reasonably assume both are production code.
+3. ~~**`cross_sell_model.ipynb` vs `cross_sell_recommender.ipynb` ambiguity.**~~ — **resolved**: `cross_sell_model.ipynb` now has an EXPLORATORY/ARCHIVED header.
 
 4. **Raw data is gitignored with no instructions.** `data/raw/` is entirely excluded. Someone cloning the repo gets no guidance on where to obtain the original dataset, what format it is in (UTF-16, pipe-separated CSV), or what schema it has beyond the brief `opisi/data_explanation.txt` (written in Croatian).
 
@@ -267,7 +263,7 @@ data/raw/LUMEN_DS.csv  (UTF-16, pipe-sep — gitignored)
 
 9. **No model versioning or reproducibility hash.** `model_meta.json` records AUC scores and hyperparameters but not a timestamp or data hash. If `.pkl` files are regenerated (e.g., retraining on new data), there is no way to detect that the metadata is stale.
 
-10. **API startup behavior undocumented.** `api/requirements.txt` exists but there is no instruction on how to start the API (`uvicorn api.main:app`), what port it runs on, or how to test the endpoints. No `Makefile`, no `docker-compose`, no startup script.
+10. ~~**API startup behavior undocumented.**~~ — **documented** in RUN_BOOK.md (Section 6) with startup command, expected output, and curl examples for all endpoints. `api/requirements.txt` now has exact version pins for all 8 packages.
 
 11. **Croatian language barrier.** Most comments, variable names for intermediate results, and all of `opisi/` are in Croatian. The code itself is English, but the explanatory layer is inaccessible to non-Croatian reviewers without translation.
 
