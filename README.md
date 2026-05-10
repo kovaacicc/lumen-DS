@@ -17,8 +17,8 @@ data/raw/LUMEN_DS.csv  (~930K invoice rows, B2B)
 data/processed/data_clean_final.csv
          │
     ┌────┴─────────────────────┐
-    │                         │
-    ▼                         ▼
+    │                          │
+    ▼                          ▼
 [02] customer_segmentation  [03] encoding_and_feature_engineering
      RFM + KMeans (K=4)          label/one-hot encoding, aggregates
          │                              │
@@ -77,13 +77,11 @@ lumen-DS/
 │   ├── upsell_model.ipynb               ← Step 6
 │   └── cross_sell_model.ipynb           ← supplementary / archived
 ├── visualization/               ← generated charts and interactive plots
-├── docs/
-│   ├── runbooks/
-│   │   ├── RUN_BOOK.md              ← full step-by-step reproduction guide (English)
-│   │   └── TEHNIČKA_DOKUMENTACIJA.md ← full step-by-step reproduction guide (Croatian)
-│   ├── CODEBASE_AUDIT.md            ← internal audit notes
-│   └── CLEANUP_REMAINING.md         ← internal cleanup checklist
-└── prompts.txt                  ← prompts used during development
+└── docs/
+    └── runbooks/
+        ├── RUN_BOOK.md              ← full step-by-step reproduction guide (English)
+        └── TEHNIČKA_DOKUMENTACIJA.md ← full step-by-step reproduction guide (Croatian)
+
 ```
 
 ---
