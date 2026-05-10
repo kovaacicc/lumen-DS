@@ -40,9 +40,11 @@ lumen-DS/
 │   └── cross_sell_model.ipynb   ← dodatna bilježnica, nije potrebna za API
 ├── visualization/
 └── docs/
-    └── runbooks/
-        ├── RUN_BOOK.md              ← engleski vodič za pokretanje
-        └── TEHNIČKA_DOKUMENTACIJA.md ← ova datoteka (hrvatski)
+    ├── runbooks/
+    │   ├── RUN_BOOK.md              ← engleski vodič za pokretanje
+    │   └── TEHNIČKA_DOKUMENTACIJA.md ← ova datoteka (hrvatski)
+    └── documentation/
+        └── DOCUMENTATION.md         ← CRISP-DM projektna dokumentacija
 ```
 
 ---

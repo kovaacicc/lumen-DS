@@ -78,9 +78,11 @@ lumen-DS/
 │   └── cross_sell_model.ipynb           ← supplementary / archived
 ├── visualization/               ← generated charts and interactive plots
 └── docs/
-    └── runbooks/
-        ├── RUN_BOOK.md              ← full step-by-step reproduction guide (English)
-        └── TEHNIČKA_DOKUMENTACIJA.md ← full step-by-step reproduction guide (Croatian)
+    ├── runbooks/
+    │   ├── RUN_BOOK.md              ← full step-by-step reproduction guide (English)
+    │   └── TEHNIČKA_DOKUMENTACIJA.md ← full step-by-step reproduction guide (Croatian)
+    └── documentation/
+        └── DOCUMENTATION.md         ← CRISP-DM project documentation
 
 ```
 
