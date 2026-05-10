@@ -39,13 +39,10 @@ lumen-DS/
 │   ├── upsell_model.ipynb
 │   └── cross_sell_model.ipynb   ← dodatna bilježnica, nije potrebna za API
 ├── visualization/
-├── docs/
-│   ├── runbooks/
-│   │   ├── RUN_BOOK.md              ← engleski vodič za pokretanje
-│   │   └── TEHNIČKA_DOKUMENTACIJA.md ← ova datoteka (hrvatski)
-│   ├── CODEBASE_AUDIT.md
-│   └── CLEANUP_REMAINING.md
-└── prompts.txt
+└── docs/
+    └── runbooks/
+        ├── RUN_BOOK.md              ← engleski vodič za pokretanje
+        └── TEHNIČKA_DOKUMENTACIJA.md ← ova datoteka (hrvatski)
 ```
 
 ---
