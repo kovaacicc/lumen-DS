@@ -2,7 +2,7 @@
 
 > **Methodology:** CRISP-DM (Cross-Industry Standard Process for Data Mining)
 >
-> This document describes the end-to-end data-science process behind the Lumen DS competition project — from understanding the business problem through deploying a real-time recommendation API. It complements the operational [README.md](../../README.md) and [Run Book](../runbooks/RUN_BOOK.md), which focus on *how to run* the pipeline; here we document *what we built and why*.
+> This document describes the end-to-end data-science process behind the Lumen DS competition project — from understanding the business problem through deploying a real-time recommendation API. It complements the operational README.md and RUN_BOOK.md, which focus on *how to run* the pipeline; here we document *what we built and why*.
 
 ---
 
@@ -66,32 +66,52 @@ Build a data-driven recommendation system that:
 |---|---|
 | Filename | `LUMEN_DS.csv` |
 | Encoding | UTF-16, pipe-separated, ~795 MB |
-| Rows | ~930,000 invoice line items |
+| Rows | ~1,300,000 invoice line items |
 | Columns | 32 raw fields covering customer, product, transaction, financial, sales-channel, and manufacturing dimensions |
-| Date range | January 2017 – mid 2020 (max invoice date ≈ 2020-06-30) |
 | Granularity | One row per invoice line (one product on one invoice) |
 
-### 2.2 Column Groups
+### 2.2 Columns Used in the Pipeline
 
-The 32 raw columns fall into seven semantic groups (full descriptions: `opisi/data_explanation.txt`):
+The raw dataset has 32 columns, but the modeling pipeline only consumes a focused subset. The table below lists every column that is actually read by at least one notebook, together with the role it plays. Columns not listed are not used by any model — they are summarized in §2.3.
 
-| Group | Key Columns | Role in Modeling |
+> *"Where used" refers to the production pipeline: `01 data_cleaning`, `02 customer_segmentation`, `03 market_basket`, `04 cross_sell_recommender`, `05 upsell_model`. The two notebooks under `notebooks/archive/` are exploratory and not part of the API path — see §3.7 and §4.3.1.*
+
+| Column | Where Used | Role in This Project |
 |---|---|---|
-| **Customer** | `CustomerID`, `Customer industry`, `Customer Region`, `Customer First Invoice Date`, `Top Customer Group` | Persona-building, RFM features, segmentation |
-| **Product** | `Item Code`, `Product family`, `Product group`, `Make vs Buy` | Recommendation target; basket analysis level |
-| **Transaction** | `Invoice #`, `Invoice Line #`, `Invoice Date`, `Invoiced qty (shipped)`, `Invoiced price`, `Order #`, `Ordered qty` | RFM, basket-id construction, label-window definition |
-| **Financial** | `Cost of part`, `Material/Labor/Overhead cost`, `GM%` | Profitability features, data-quality screen |
-| **Sales channel** | `Sales Channel - Internal/External/Grouping`, `Intercompany` | Filtering (`Intercompany=YES` removed) |
-| **Manufacturing** | `Manufacturing Region`, `Manufacturing Location Code` | Marginal — kept for completeness |
-| **Pricing meta** | `Price last modified date in the ERP`, `Born on date`, `# of unique products on a quote` | Dropped early as redundant or too granular |
+| `CustomerID` | All notebooks | Primary key for every per-customer analysis (RFM, segmentation, basket grouping, recommendations). |
+| `Invoice Date` | All notebooks | Recency in RFM (segmentation), customer-month basket key (market basket), train/label split cutoff (cross-sell, up-sell), tenure calculation (cross-sell). |
+| `Invoice #` | Segmentation, market basket, cross-sell | Frequency in RFM; basket co-occurrence unit at the invoice level (used to confirm invoice-level baskets are too sparse and to switch to customer-month); `train_orders` feature for the cross-sell model. |
+| `Invoiced price` | Cleaning, segmentation, cross-sell, up-sell | Monetary in RFM (with quantity); imputed where ≥ 50% of an item's rows have valid prices; item average price for tier classification (up-sell); `pg_avg_price` feature (cross-sell). |
+| `Invoiced qty (shipped)` | Cleaning, segmentation, cross-sell | Multiplied with `Invoiced price` to compute `line_revenue` (Monetary, `train_revenue`, `pg_avg_revenue`). Negative or zero rows are filtered in cleaning. |
+| `Item Code` | Cleaning, market basket (bonus item-level run), cross-sell, up-sell | Product identifier; `train_items` feature; tier classification target; Layer-2 item recommendation level inside the API. `SAMPLE` and `/`-prefixed codes are filtered in cleaning. |
+| `Product group` | Market basket, cross-sell, up-sell | Recommendation granularity for the cross-sell ranker; basket-level co-occurrence unit; PG-level price median for up-sell tiering. |
+| `GM%` | Cleaning, cross-sell | Recomputed from price and cost where both are available; winsorized to `[-5, 1]`; `train_avg_gm` and `pg_avg_gm` features. |
+| `Customer Region` | Cross-sell | Label-encoded → `region_enc` feature. |
+| `Customer industry` | Cross-sell | Label-encoded → `industry_enc` feature. |
+| `Top Customer Group` | Cross-sell | Label-encoded → `top_group_enc` feature. |
+| `Customer First Invoice Date` | Cross-sell | Drives the `tenure_days` feature (snapshot date − first invoice). |
+| `Cost of part` | Cleaning | Used to recover `GM%` where it is null; used to filter "garbage" rows where `Cost > 20 × Invoiced price`. Not used as a feature directly. |
+| `Intercompany` | Cleaning | Pre-modeling filter: `Intercompany = YES` rows (intra-corporate transfers) are removed before any analysis. |
 
-### 2.3 Key Identifiers (per `opisi/key_data.txt`)
+In addition, the **derived** column `Cluster_name` (output of segmentation) feeds both downstream recommenders: as the `cluster_enc` feature in cross-sell, and as the personalization key for cluster-conditional item popularity in up-sell.
 
-- `CustomerID` — primary key for any per-customer analysis (persona, RFM, recommendation)
-- `Item Code` — product identifier, target of recommendations
-- `Invoice Date` — Recency in RFM
-- `Invoice #` — basket key, market-basket co-occurrence unit
-- `Invoiced price` — Monetary in RFM, up-sell tier signal
+### 2.3 Columns Not Used
+
+Every other column in the raw dataset is dropped early in cleaning or simply never read. The table below records what was excluded and why — keeping the audit transparent rather than implying every field was touched.
+
+| Column | Why Not Used |
+|---|---|
+| `Invoice Line #` | Position-within-invoice metadata; irrelevant once we aggregate to invoice or customer-month; almost as much unique numbers as rows |
+| `Order #`, `Order Date`, `Order Line #` | Order-side artifacts of the PO cycle; `Invoice Date` is the canonical timestamp for RFM and the temporal split. |
+| `Ordered qty` | Used only as a sanity check during cleaning; the canonical "the customer bought this" signal is `Invoiced qty (shipped)`. |
+| `Material cost`, `Labor cost`, `Overhead cost` | Components of `Cost of part`; the aggregate is sufficient for our cleaning rules. |
+| `Invoiced price (TX)` | Field semantics are unclear (likely a tax variant); excluded to avoid introducing noisy features. |
+| `Sales Channel - Internal`, `Sales Channel - External`, `Sales Channel - Grouping` | Channel attribution metadata; not a customer- or product-level feature relevant to "what should this customer buy next." |
+| `Make vs Buy` | Supply-side attribute (made internally vs. sourced); not predictive of cross-sell behavior. |
+| `Manufacturing Region`, `Manufacturing Location Code` | Where the item is produced — supply-side, not customer-side, so irrelevant for the cross-sell and up-sell |
+| `Product family` | Superseded by `Product group`, which is the chosen basket and recommendation granularity. |
+| `Born on date`, `Price last modified date in the ERP` | Item lifecycle / pricing-update metadata; no expected signal for cross-sell or up-sell. |
+| `# of unique products on a quote` | Quote-level metric, not aligned with the invoice-line granularity of the dataset. |
 
 ### 2.4 Establishing the B2B Nature of the Dataset
 
@@ -116,8 +136,8 @@ This conclusion drives several modeling decisions: customer-level (not invoice-l
 
 Exploratory analysis surfaced six classes of problematic data, all of which had to be addressed before modeling:
 
-1. **Placeholder customer ID `-99`.** The brief confirmed this is the source-system NULL marker, not a real customer.
-2. **`SAMPLE` and `/`-prefixed item codes.** Per the brief: technical records and free samples — not real purchases.
+1. **Placeholder customer ID `-99`.** Source-system NULL marker, not a real customer.
+2. **`SAMPLE` and `/`-prefixed item codes.** Technical records and free samples — not real purchases.
 3. **Zero / null `Invoiced price`.** ~9% of rows. A mix of technical artifacts and recoverable values.
 4. **Negative `Invoiced price` and negative quantities.** Credit notes / returns — small in volume but distort RFM.
 5. **`Cost of part` ≫ `Invoiced price`.** A handful of rows where cost was 20× the price — clearly garbage.
@@ -129,11 +149,11 @@ Sample/slash item codes alone numbered hundreds of thousands of rows; `Intercomp
 
 ## 3. Data Preparation
 
-The cleaning pipeline runs in `notebooks/data_cleaning.ipynb` (after a one-shot encoding fix in `dataprep/fixer.py`). Every decision was made deliberately, with the reasoning captured below.
+The cleaning pipeline runs entirely in `notebooks/data_cleaning.ipynb`. Every decision was made deliberately, with the reasoning captured below.
 
 ### 3.1 Encoding Fix and Initial Column Drop
 
-`dataprep/fixer.py` converts UTF-16 → UTF-8 and strips embedded double quotes that break the pipe parser. Then 11 columns are dropped because they are redundant or too granular for any of the planned models:
+The notebook's first step converts the raw `LUMEN_DS.csv` from UTF-16 → UTF-8 and strips embedded double quotes that would otherwise break the pipe parser. The result is cached as `data/raw/data.csv` so the conversion is skipped on subsequent runs. Then 11 columns are dropped because they are redundant or too granular for any of the planned models:
 
 | Dropped Column | Reason |
 |---|---|
@@ -151,10 +171,10 @@ The cleaning pipeline runs in `notebooks/data_cleaning.ipynb` (after a one-shot 
 ### 3.3 Row-Level Cleaning Decisions
 
 #### 3.3.1 Drop placeholder customer ID `-99`
-Confirmed by the brief as a source-system NULL. Removing these rows is unambiguous.
+Source-system NULL. Removing these rows is unambiguous.
 
 #### 3.3.2 Drop `SAMPLE` and `/`-prefixed item codes
-Per the brief: these are free samples (not requested purchases) and source-system technical records, respectively. They appear on hundreds of thousands of lines and would create phantom co-purchase signals. Filter:
+These are free samples (not requested purchases) and source-system technical records, respectively. They appear on hundreds of thousands of lines and would create phantom co-purchase signals. Filter:
 ```
 Item Code ~ "SAMPLE" or Item Code starts with "/"
 ```
@@ -207,12 +227,16 @@ This recovers a meaningful share of rows. The remaining null `GM%` is left as-is
 
 ### 3.6 Final Clean Dataset
 
-The pipeline output (`data/processed/data_clean_final.csv`) is the canonical input for **every downstream notebook**. After the steps above:
+The pipeline output (`data/processed/data_clean_final.csv`) is the canonical input for **every downstream notebook**. The cleaning steps reduce the dataset from ~1.3M raw invoice lines to **~930K rows** retained for modeling. After the steps above:
 
 - All key identifiers (`CustomerID`, `Item Code`, `Invoice Date`, `Invoiced price`) are populated.
 - Prices are all ≥ 0 and quantities all > 0.
 - `GM%` is bounded in `[-5, 1]`.
 - Categorical nulls are explicit `'Unknown'` values.
+
+### 3.7 Archived Exploration — `encoding_and_feature_engineering.ipynb`
+
+An earlier notebook (`notebooks/archive/encoding_and_feature_engineering.ipynb`) label/one-hot encoded the cleaned dataset and produced a 928k-row encoded file plus customer-level aggregate tables. It was useful as an exploration step — confirming feature distributions and aggregates — but the production pipeline does **not** depend on it: each downstream notebook re-reads `data_clean_final.csv` and rebuilds the features it needs inline. The archived notebook is kept for transparency but is not part of the API path.
 
 ---
 
@@ -334,7 +358,7 @@ Notebook: `notebooks/cross_sell_recommender.ipynb`.
 
 #### 4.3.1 Problem Framing
 
-Earlier work (`notebooks/cross_sell_model.ipynb`) framed cross-sell as a customer-level binary classification: "will this customer ever cross-sell?" That answers a question, but not a useful one — it doesn't tell the API *which* product to recommend.
+Earlier work (`notebooks/archive/cross_sell_model.ipynb`) framed cross-sell as a customer-level binary classification: "will this customer ever cross-sell?" That answers a question, but not a useful one — it doesn't tell the API *which* product to recommend.
 
 The production recommender reframes the task as a **per-pair prediction**:
 
@@ -390,7 +414,9 @@ n_estimators=300, max_depth=6, learning_rate=0.05,
 subsample=0.8, colsample_bytree=0.8, random_state=42
 ```
 
-XGBoost is selected as the production model. Its `.pkl` is saved to `models/recommender/recommender_best.pkl` and is loaded by the API.
+XGBoost is selected as the production model. Its `.pkl` is saved to `models/recommender/recommender_xgb.pkl` and is loaded by the API.
+
+A subsequent rolling-window experiment in §13 of the notebook retrained XGBoost on three additional historical windows (Jul–Dec 2018, Oct 2018–Mar 2019, Jan–Jun 2019) stacked onto the base train period. The expanded training did **not** beat the base model — AUC stayed at the same level — so the deployed `recommender_xgb.pkl` is the pre-rolling-window, 27-feature XGBoost reported above (AUC 0.9248). The rolling-window code is kept in the notebook for reproducibility but is not part of the production artifact.
 
 #### 4.3.6 Layer 2 — Item Suggestions Within a Recommended PG
 
@@ -647,7 +673,7 @@ conda activate lumen-ds
 uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Production deployment notes (documented as known gaps in `docs/CODEBASE_AUDIT.md`):
+Production deployment notes:
 
 - **Single-worker assumption.** `state: dict` is in-process; multi-worker (Gunicorn) deployment would need either a shared cache or per-worker reload of the same artifacts.
 - **No authentication or rate limiting.** Both endpoints are open by design (the API is internal). Add authentication at the gateway layer if the API is exposed beyond the company network.
@@ -678,12 +704,10 @@ A minor source of variance — XGBoost `n_jobs=-1` can produce ±0.002 AUC varia
 |---|---|---|
 | `01 data_cleaning` | `data/processed/data_clean_final.csv` | Every downstream notebook |
 | `02 customer_segmentation` | `data/processed/rfm_segments.csv` | Cross-sell recommender, up-sell model |
-| `03 encoding_and_feature_engineering` | `customer_features.csv`, `data_clean_enc_fe.csv`, `invoice_items.csv` | Supplementary cross-sell model only |
-| `04 market_basket` | `data/processed/association_rules.csv` | Cross-sell recommender |
-| `05 cross_sell_recommender` | `models/recommender/*.pkl`, `data/processed/recommender/*.csv`, `feature_medians.json` | API `/cross-sell` |
-| `06 upsell_model` | `data/processed/upsell/*.csv`, `models/upsell/upsell_meta.json` | API `/up-sell` and `/cross-sell` Layer 2 |
-| (supplementary) `cross_sell_model` | `models/cross_sell/*.pkl` | Not used by API — kept for completeness |
+| `03 market_basket` | `data/processed/association_rules.csv` | Cross-sell recommender |
+| `04 cross_sell_recommender` | `models/recommender/*.pkl`, `data/processed/recommender/*.csv`, `feature_medians.json` | API `/cross-sell` |
+| `05 upsell_model` | `data/processed/upsell/*.csv`, `models/upsell/upsell_meta.json` | API `/up-sell` and `/cross-sell` Layer 2 |
+| `archive/encoding_and_feature_engineering` | `customer_features.csv`, `data_clean_enc_fe.csv`, `invoice_items.csv` | Exploratory only — not consumed by the production pipeline (see §3.7) |
+| `archive/cross_sell_model` | `models/cross_sell/*.pkl` | Exploratory only — superseded by the production cross-sell recommender (see §4.3.1) |
 
 ---
-
-*This document is the project's CRISP-DM narrative. For step-by-step reproduction instructions see [`docs/runbooks/RUN_BOOK.md`](../runbooks/RUN_BOOK.md) (English) or [`docs/runbooks/TEHNIČKA_DOKUMENTACIJA.md`](../runbooks/TEHNIČKA_DOKUMENTACIJA.md) (Croatian).*

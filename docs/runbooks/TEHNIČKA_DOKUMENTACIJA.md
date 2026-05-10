@@ -22,9 +22,6 @@ lumen-DS/
 ├── api/
 │   ├── main.py                  ← REST API (FastAPI)
 │   └── requirements.txt         ← ovisnosti API-ja
-├── dataprep/
-│   ├── fixer.py                 ← skripta za pripremu podataka (pokreće se prije bilježnica)
-│   └── cleaner.py               ← skripta za pripremu podataka (pokreće se prije bilježnica)
 ├── data/
 │   ├── raw/
 │   │   └── LUMEN_DS.csv         ← originalni skup podataka (nije u gitu, obavezno)
@@ -33,13 +30,15 @@ lumen-DS/
 ├── notebooks/
 │   ├── data_cleaning.ipynb
 │   ├── customer_segmentation.ipynb
-│   ├── encoding_and_feature_engineering.ipynb
 │   ├── market_basket.ipynb
 │   ├── cross_sell_recommender.ipynb
 │   ├── upsell_model.ipynb
-│   └── cross_sell_model.ipynb   ← dodatna bilježnica, nije potrebna za API
+│   └── archive/                 ← eksploratorne bilježnice koje nisu dio API pipeline-a
 ├── visualization/
 └── docs/
+    ├── documentation/
+    │   ├── DOCUMENTATION.md         ← CRISP-DM dokumentacija projekta (engleski)
+    │   └── DOKUMENTACIJA.md         ← CRISP-DM dokumentacija projekta (hrvatski)
     └── runbooks/
         ├── RUN_BOOK.md              ← engleski vodič za pokretanje
         └── TEHNIČKA_DOKUMENTACIJA.md ← ova datoteka (hrvatski)
@@ -125,19 +124,7 @@ Prije pokretanja svake bilježnice provjerite je li kernel postavljen na **lumen
 
 ---
 
-### Korak 3 — `notebooks/encoding_and_feature_engineering.ipynb`
-
-**Čita:** `data/processed/data_clean_final.csv`
-
-**Proizvodi:** `data/processed/data_clean_enc_fe.csv`, `data/processed/customer_features.csv`, `data/processed/invoice_items.csv`
-
-**Što radi:** Label-enkodira i one-hot enkodira kategoričke varijable, izrađuje vremenski zasnovane značajke, izračunava agregate na razini kupca i analizira obrasce zajedničkog pojavljivanja faktura. Izlazne datoteke ove bilježnice ulaz su za dopunsku bilježnicu `cross_sell_model.ipynb`.
-
-> **Napomena:** Izlazne datoteke ove bilježnice **nisu** potrebne za glavni API pipeline. Koraci 4–6 čitaju izravno iz `data_clean_final.csv`.
-
----
-
-### Korak 4 — `notebooks/market_basket.ipynb`
+### Korak 3 — `notebooks/market_basket.ipynb`
 
 **Čita:** `data/processed/data_clean_final.csv`
 
@@ -147,7 +134,7 @@ Prije pokretanja svake bilježnice provjerite je li kernel postavljen na **lumen
 
 ---
 
-### Korak 5 — `notebooks/cross_sell_recommender.ipynb`
+### Korak 4 — `notebooks/cross_sell_recommender.ipynb`
 
 **Čita:** `data/processed/data_clean_final.csv`, `data/processed/rfm_segments.csv`, `data/processed/association_rules.csv`
 
@@ -165,7 +152,7 @@ Prije pokretanja svake bilježnice provjerite je li kernel postavljen na **lumen
 
 ---
 
-### Korak 6 — `notebooks/upsell_model.ipynb`
+### Korak 5 — `notebooks/upsell_model.ipynb`
 
 **Čita:** `data/processed/data_clean_final.csv`, `data/processed/rfm_segments.csv`
 
@@ -178,16 +165,6 @@ Prije pokretanja svake bilježnice provjerite je li kernel postavljen na **lumen
 - `models/upsell/upsell_meta.json` — sažetak statistika
 
 **Što radi:** Klasificira svaki artikl kao standard ili premium (na temelju toga je li njegova prosječna cijena iznad ili ispod medijana produktne grupe), identificira kupce koji kupuju ispod medijana u svakoj PG i gradi rangiranja popularnosti artikala uvjetovana klasterom. Validirano proxy metricom: 44,2% up-sell ciljeva pokazalo je pozitivan rast cijene u label periodu.
-
----
-
-### Dopunska bilježnica — `notebooks/cross_sell_model.ipynb` *(nije obavezna)*
-
-**Čita:** `data/processed/customer_features.csv` (iz Koraka 3)
-
-**Proizvodi:** `models/cross_sell/cross_sell_rf.pkl`, `models/cross_sell/cross_sell_xgb.pkl`
-
-**Što radi:** Raniji, jednostavniji pristup cross-sellu koji klasificira kupce kao cross-sell kandidate na razini kupca (umjesto na razini kupac × produktna grupa). API ne koristi ovu bilježnicu. Uključena radi cjelovitosti prikaza procesa modeliranja.
 
 ---
 

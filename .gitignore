@@ -1,13 +1,14 @@
-# ── Raw & large processed data (too large for git) ────────────────────────────
-data/raw/
-data/processed/data_clean*.csv
-data/processed/basket_matrix.csv
-data/processed/invoice_items.csv
-data/processed/cross_sell/
+# ── Data ──────────────────────────────────────────────────────────────────────
+data/
 
-# Legacy root-level files
-data.csv
-LUMEN_DS.csv
+# ── Models from archived/exploratory notebooks ────────────────────────────────
+models/cross_sell/
+
+# ── Pandoc/LaTeX build artifacts ──────────────────────────────────────────────
+*.aux
+*.log
+*.toc
+*.out
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
@@ -17,6 +18,10 @@ __pycache__/
 
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
+
+# ── Editors ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
 
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store

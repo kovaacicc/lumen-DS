@@ -1,0 +1,18 @@
+% Wrap long lines inside code blocks / verbatim
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+
+% Make LaTeX more willing to break tight lines (table cells with long paths)
+\setlength{\emergencystretch}{3em}
+
+% Allow paths/URLs in \texttt{} to break at slashes, dots, dashes, underscores
+\usepackage[hyphens]{url}
+\renewcommand{\UrlBreaks}{\do\/\do\-\do\_\do\.\do\,\do\:}
+
+% Tell \texttt to behave like a URL so it inherits the break points above
+\usepackage{etoolbox}
+\AtBeginDocument{\let\oldtexttt\texttt%
+  \renewcommand{\texttt}[1]{\begingroup\urlstyle{tt}\url{#1}\endgroup}}
+
+% Slightly tighter inter-column spacing so tables fit
+\setlength{\tabcolsep}{4pt}

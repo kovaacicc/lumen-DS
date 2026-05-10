@@ -7,48 +7,44 @@ A machine learning pipeline that segments B2B customers, discovers product assoc
 ## Pipeline Overview
 
 ```
-data/raw/LUMEN_DS.csv  (~930K invoice rows, B2B)
+data/raw/LUMEN_DS.csv  (~1.3M invoice rows, B2B)
          │
          ▼
 [01] data_cleaning.ipynb
      EDA, row filtering, imputation
          │
          ▼
-data/processed/data_clean_final.csv
+data/processed/data_clean_final.csv  (~930K rows after cleaning)
          │
-    ┌────┴─────────────────────┐
-    │                          │
-    ▼                          ▼
-[02] customer_segmentation  [03] encoding_and_feature_engineering
-     RFM + KMeans (K=4)          label/one-hot encoding, aggregates
-         │                              │
-         ▼                              ▼
-  rfm_segments.csv            customer_features.csv
-         │                         │
-         │                    [04a] cross_sell_model  ← supplementary only
+         ▼
+[02] customer_segmentation.ipynb
+     RFM + KMeans (K=4)
          │
-    ┌────┴──────────────┐
-    │                   │
-    ▼                   ▼
-[04] market_basket    [05] cross_sell_recommender
-  Apriori/FP-Growth        XGBoost, AUC 0.9248
-         │                        │
-         ▼                        ▼
+         ▼
+  rfm_segments.csv
+         │
+    ┌────┴───────────────────┐
+    ▼                        ▼
+[03] market_basket    [04] cross_sell_recommender
+  Apriori/FP-Growth      XGBoost, AUC 0.9248
+         │                    │
+         ▼                    ▼
  association_rules.csv   models/recommender/*.pkl
                          data/processed/recommender/*.csv
-                                  │
-                         [06] upsell_model
-                              cluster-conditional
-                              item popularity
-                                  │
-                                  ▼
-                         data/processed/upsell/*.csv
-                                  │
-                    ┌─────────────┴──────────────┐
-                    │        api/main.py          │
-                    │   POST /cross-sell          │
-                    │   POST /up-sell             │
-                    └─────────────────────────────┘
+                              │
+                              ▼
+                       [05] upsell_model
+                            cluster-conditional
+                            item popularity
+                              │
+                              ▼
+                       data/processed/upsell/*.csv
+                              │
+                  ┌───────────┴──────────────┐
+                  │       api/main.py        │
+                  │   POST /cross-sell       │
+                  │   POST /up-sell          │
+                  └──────────────────────────┘
 ```
 
 ---
@@ -60,9 +56,6 @@ lumen-DS/
 ├── api/
 │   ├── main.py                  ← FastAPI application
 │   └── requirements.txt         ← pinned API dependencies
-├── dataprep/
-│   ├── fixer.py                 ← pre-processing script (run before notebook pipeline)
-│   └── cleaner.py               ← pre-processing script (run before notebook pipeline)
 ├── data/
 │   ├── raw/
 │   │   └── LUMEN_DS.csv         ← place original dataset here (not in git)
@@ -71,13 +64,17 @@ lumen-DS/
 ├── notebooks/
 │   ├── data_cleaning.ipynb              ← Step 1
 │   ├── customer_segmentation.ipynb      ← Step 2
-│   ├── encoding_and_feature_engineering.ipynb  ← Step 3
-│   ├── market_basket.ipynb              ← Step 4
-│   ├── cross_sell_recommender.ipynb     ← Step 5  (production model)
-│   ├── upsell_model.ipynb               ← Step 6
-│   └── cross_sell_model.ipynb           ← supplementary / archived
+│   ├── market_basket.ipynb              ← Step 3
+│   ├── cross_sell_recommender.ipynb     ← Step 4  (production model)
+│   ├── upsell_model.ipynb               ← Step 5
+│   └── archive/                         ← exploratory notebooks not used by the API
+│       ├── encoding_and_feature_engineering.ipynb
+│       └── cross_sell_model.ipynb
 ├── visualization/               ← generated charts and interactive plots
 └── docs/
+    ├── documentation/
+    │   ├── DOCUMENTATION.md         ← CRISP-DM project documentation (English)
+    │   └── DOKUMENTACIJA.md         ← CRISP-DM project documentation (Croatian)
     └── runbooks/
         ├── RUN_BOOK.md              ← full step-by-step reproduction guide (English)
         └── TEHNIČKA_DOKUMENTACIJA.md ← full step-by-step reproduction guide (Croatian)
@@ -119,12 +116,11 @@ Open Jupyter from the project root with the `lumen-ds` kernel active, then run n
 |------|----------|------------|
 | 1 | `data_cleaning.ipynb` | `data_clean_final.csv` |
 | 2 | `customer_segmentation.ipynb` | `rfm_segments.csv` |
-| 3 | `encoding_and_feature_engineering.ipynb` | `customer_features.csv` |
-| 4 | `market_basket.ipynb` | `association_rules.csv` |
-| 5 | `cross_sell_recommender.ipynb` | `models/recommender/recommender_xgb.pkl` |
-| 6 | `upsell_model.ipynb` | `data/processed/upsell/*.csv` |
+| 3 | `market_basket.ipynb` | `association_rules.csv` |
+| 4 | `cross_sell_recommender.ipynb` | `models/recommender/recommender_xgb.pkl` |
+| 5 | `upsell_model.ipynb` | `data/processed/upsell/*.csv` |
 
-Steps 5 and 6 can run in parallel once Steps 1–4 are complete.
+Steps 4 and 5 can run in parallel once Steps 1–3 are complete.
 
 > For full details on each step, expected outputs, and troubleshooting, see [RUN_BOOK.md](docs/runbooks/RUN_BOOK.md).
 

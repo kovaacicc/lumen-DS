@@ -22,9 +22,6 @@ lumen-DS/
 ├── api/
 │   ├── main.py                  ← REST API (FastAPI)
 │   └── requirements.txt         ← API dependencies
-├── dataprep/
-│   ├── fixer.py                 ← pre-processing script (run before notebook pipeline)
-│   └── cleaner.py               ← pre-processing script (run before notebook pipeline)
 ├── data/
 │   ├── raw/
 │   │   └── LUMEN_DS.csv         ← original dataset (not in git, required)
@@ -33,13 +30,15 @@ lumen-DS/
 ├── notebooks/
 │   ├── data_cleaning.ipynb
 │   ├── customer_segmentation.ipynb
-│   ├── encoding_and_feature_engineering.ipynb
 │   ├── market_basket.ipynb
 │   ├── cross_sell_recommender.ipynb
 │   ├── upsell_model.ipynb
-│   └── cross_sell_model.ipynb   ← supplementary, not required for API
+│   └── archive/                 ← exploratory notebooks not part of the API path
 ├── visualization/
 └── docs/
+    ├── documentation/
+    │   ├── DOCUMENTATION.md         ← CRISP-DM project documentation (English)
+    │   └── DOKUMENTACIJA.md         ← CRISP-DM project documentation (Croatian)
     └── runbooks/
         ├── RUN_BOOK.md              ← this file (English)
         └── TEHNIČKA_DOKUMENTACIJA.md ← Croatian version
@@ -125,19 +124,7 @@ Make sure the kernel is set to **lumen-ds** before running each notebook.
 
 ---
 
-### Step 3 — `notebooks/encoding_and_feature_engineering.ipynb`
-
-**Reads:** `data/processed/data_clean_final.csv`
-
-**Produces:** `data/processed/data_clean_enc_fe.csv`, `data/processed/customer_features.csv`, `data/processed/invoice_items.csv`
-
-**What it does:** Label-encodes and one-hot-encodes categorical variables, engineers time-based features, computes customer-level aggregates, and analyses invoice co-occurrence patterns. The outputs from this notebook feed into the supplementary `cross_sell_model.ipynb`.
-
-> **Note:** This notebook's output files are **not** required by the main API pipeline. Steps 4–6 read directly from `data_clean_final.csv`.
-
----
-
-### Step 4 — `notebooks/market_basket.ipynb`
+### Step 3 — `notebooks/market_basket.ipynb`
 
 **Reads:** `data/processed/data_clean_final.csv`
 
@@ -147,7 +134,7 @@ Make sure the kernel is set to **lumen-ds** before running each notebook.
 
 ---
 
-### Step 5 — `notebooks/cross_sell_recommender.ipynb`
+### Step 4 — `notebooks/cross_sell_recommender.ipynb`
 
 **Reads:** `data/processed/data_clean_final.csv`, `data/processed/rfm_segments.csv`, `data/processed/association_rules.csv`
 
@@ -165,7 +152,7 @@ Make sure the kernel is set to **lumen-ds** before running each notebook.
 
 ---
 
-### Step 6 — `notebooks/upsell_model.ipynb`
+### Step 5 — `notebooks/upsell_model.ipynb`
 
 **Reads:** `data/processed/data_clean_final.csv`, `data/processed/rfm_segments.csv`
 
@@ -178,16 +165,6 @@ Make sure the kernel is set to **lumen-ds** before running each notebook.
 - `models/upsell/upsell_meta.json` — summary statistics
 
 **What it does:** Classifies each item as standard or premium (based on whether its average price is above or below the product group median), identifies customers buying below the median in each PG, and builds cluster-conditional item popularity rankings. Validated via proxy metric: 44.2% of up-sell targets showed positive price uplift in the label period.
-
----
-
-### Supplementary — `notebooks/cross_sell_model.ipynb` *(optional)*
-
-**Reads:** `data/processed/customer_features.csv` (from Step 3)
-
-**Produces:** `models/cross_sell/cross_sell_rf.pkl`, `models/cross_sell/cross_sell_xgb.pkl`
-
-**What it does:** An earlier, simpler cross-sell approach that classifies customers as cross-sell candidates at the customer level (rather than at the customer × product group level). Not used by the API. Included for completeness of the modelling process.
 
 ---
 
