@@ -64,8 +64,8 @@
   "top_k": 5,
   "train_end": "2019-07-01",
   "label_end": "2020-07-01",
-  "lr_auc": 0.8654,
-  "rf_auc": 0.9141,
-  "xgb_auc": 0.9248,
-  "best_auc": 0.9248
+  "lr_auc": 0.8698,
+  "rf_auc": 0.9225,
+  "xgb_auc": 0.9332,
+  "best_auc": 0.9332
 }
